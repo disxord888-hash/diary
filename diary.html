@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beautiful Diary</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --gold: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .title-badge {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--gold);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .title-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        button {
+            background: var(--glass-bg);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        button.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        button.primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entry-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .entry-item {
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .entry-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--glass-border);
+        }
+
+        .entry-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--primary);
+        }
+
+        .entry-item-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .entry-item-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .editor-area {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="datetime-local"]:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            opacity: 0.5;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--bg-color);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--gold);
+        }
+
+        .modal-desc {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .titles-list {
+            margin-top: 1.5rem;
+            max-height: 50vh;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-right: 0.5rem;
+        }
+        
+        .title-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+        
+        .title-list-item.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        
+        .title-list-item-icon {
+            font-size: 2rem;
+            width: 48px;
+            text-align: center;
+        }
+        
+        .title-list-item-content {
+            flex: 1;
+        }
+        
+        .title-list-item-name {
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 0.2rem;
+            font-size: 1.1rem;
+        }
+        
+        .title-list-item.locked .title-list-item-name {
+            color: var(--text-muted);
+        }
+        
+        .title-list-item-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+        
+        .title-list-item-req {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">Chronicle</div>
+        <div class="user-stats">
+            <div class="title-badge" id="user-titleBadge" title="称号一覧を見る" style="cursor: pointer;" onclick="openTitleListModal()">
+                <span>🌟</span> <span id="user-titleText">旅の始まり</span>
+            </div>
+            <div class="actions">
+                <button onclick="document.getElementById('file-input').click()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    インポート
+                </button>
+                <input type="file" id="file-input" accept=".json" onchange="importData(event)">
+                
+                <button onclick="exportData()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    エクスポート
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>記録一覧</h3>
+                <button class="primary" onclick="createNewEntry()" style="padding: 0.4rem 0.8rem;">
+                    + 新規
+                </button>
+            </div>
+            <div class="entry-list" id="entryList">
+                <!-- Entries will be injected here -->
+            </div>
+        </div>
+
+        <div class="editor-area" id="editorArea">
+            <div class="empty-state" id="emptyState">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                <h2>日々の軌跡を刻もう</h2>
+                <p>左側の「+ 新規」ボタンから新しい記録を作成するか、<br>既存の記録を選択してください。</p>
+            </div>
+
+            <div id="editorForm" style="display: none; height: 100%; flex-direction: column; gap: 1.5rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <div class="input-group" style="flex: 1;">
+                        <label for="entryTitle">タイトル</label>
+                        <input type="text" id="entryTitle" placeholder="今日のハイライト">
+                    </div>
+                    <div class="input-group" style="width: 220px;">
+                        <label for="entryDate">日時</label>
+                        <input type="datetime-local" id="entryDate">
+                    </div>
+                </div>
+                
+                <div class="input-group" style="flex: 1; display: flex; flex-direction: column;">
+                    <label for="entryContent">内容</label>
+                    <textarea id="entryContent" placeholder="今日はどんな一日でしたか？"></textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <div style="color: var(--text-muted); font-size: 0.9rem;">
+                        <span id="charCount">0</span> 文字
+                    </div>
+                    <button class="primary" onclick="saveEntry()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        保存する
+                    </button>
+                    <button onclick="deleteEntry()" style="color: var(--danger); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.1);">
+                        削除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast">保存しました</div>
+
+    <!-- Title Unlock Modal -->
+    <div class="modal-overlay" id="titleModal">
+        <div class="modal">
+            <div class="modal-icon floating">🏆</div>
+            <h2 class="modal-title">新しい称号を獲得しました！</h2>
+            <p class="modal-desc" id="modalDesc">記録を続けて素晴らしい旅路を歩んでいます。</p>
+            <div class="title-badge" style="justify-content: center; margin-bottom: 1.5rem; font-size: 1.2rem; padding: 1rem;">
+                <span id="modalNewTitle">新しい称号</span>
+            </div>
+            <button class="primary" style="width: 100%; justify-content: center;" onclick="closeModal()">閉じる</button>
+        </div>
+    </div>
+
+    <!-- Title List Modal -->
+    <div class="modal-overlay" id="titleListModal">
+        <div class="modal" style="max-width: 500px;">
+            <h2 class="modal-title">称号コレクション</h2>
+            <p class="modal-desc" style="margin-bottom: 0;">現在の日記記録数: <span id="currentRecordsCount" style="color: var(--primary); font-weight: bold; font-size: 1.2rem;">0</span> 件</p>
+            <div class="titles-list" id="titlesListContainer">
+                <!-- Titles injected here -->
+            </div>
+            <button class="primary" style="width: 100%; justify-content: center; margin-top: 1.5rem;" onclick="closeTitleListModal()">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure
+        let entries = [];
+        let currentEntryId = null;
+        let lastKnownTitleIndex = -1;
+
+        // Title Definitions
+        const titles = [
+            { count: 0, name: "旅の始まり", desc: "日記を始めたばかりの旅人" },
+            { count: 1, name: "歩み出した者", desc: "最初の一歩を踏み出しました！" },
+            { count: 3, name: "三日坊主の克服者", desc: "最初の壁を乗り越えました！" },
+            { count: 7, name: "一週間の継続者", desc: "日記を書く習慣が根付いてきました。" },
+            { count: 14, name: "記憶の収集家", desc: "日常の些細なことも大切な思い出に。" },
+            { count: 30, name: "月を跨ぐ記録者", desc: "1ヶ月間、見事に継続しました！" },
+            { count: 50, name: "達人ペン走者", desc: "あなたの言葉は歴史となります。" },
+            { count: 100, name: "伝説の語り部", desc: "もはやあなたの日記は一つの物語です。" },
+            { count: 150, name: "百五十景の探求者", desc: "多くの日々が積み重なっています。" },
+            { count: 200, name: "二百日祭の主役", desc: "素晴らしい継続力です！" },
+            { count: 300, name: "三百の軌跡", desc: "もうすぐ1年分の記録ですね。" },
+            { count: 500, name: "五百の記憶", desc: "分厚い本が一冊書けそうな圧倒的な記録量です。" },
+            { count: 730, name: "二星霜の記録者", desc: "2年分！もはや日記をつけることは人生の一部です。" },
+            { count: 1000, name: "千日回峰", desc: "1000件到達！並外れた執念と継続力。" },
+            { count: 1500, name: "語り継がれる者", desc: "あなたの日々は歴史的な価値を持ち始めました。" },
+            { count: 2000, name: "二千字の賢者", desc: "広大な記憶の海を統べる賢者。" },
+            { count: 3000, name: "三千宝庫の主", desc: "誰も追いつけないほどの圧倒的で壮大な記録。" },
+            { count: 4000, name: "時を統べる者", desc: "幾星霜を越え、時そのものを書き記す存在。" },
+            { count: 5000, name: "万象の記録者", desc: "森羅万象、あらゆる日常を書き留めた人生の達人。" },
+            { count: 6000, name: "永遠の観察者", desc: "前人未到の6000件！神話級の究極記録です。" }
+        ];
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderList();
+            checkTitleUnlock(true); // silent check on load
+            
+            // Setup Textarea auto-resize / char count
+            const textarea = document.getElementById('entryContent');
+            textarea.addEventListener('input', () => {
+                document.getElementById('charCount').innerText = textarea.value.length;
+            });
+        });
+
+        function loadFromStorage() {
+            try {
+                const stored = localStorage.getItem('chronicle_entries');
+                const storedTitleIndex = localStorage.getItem('chronicle_title_index');
+                if (stored) {
+                    entries = JSON.parse(stored);
+                    entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                }
+                if (storedTitleIndex) {
+                    lastKnownTitleIndex = parseInt(storedTitleIndex, 10);
+                }
+            } catch (e) {
+                console.error("Failed to load entries from LocalStorage", e);
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('chronicle_entries', JSON.stringify(entries));
+            localStorage.setItem('chronicle_title_index', lastKnownTitleIndex);
+        }
+
+        // --- Core Functions ---
+
+        function createNewEntry() {
+            currentEntryId = Date.now().toString();
+            
+            const today = new Date();
+            const offset = today.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(Date.now() - offset)).toISOString().slice(0, 16);
+
+            document.getElementById('entryTitle').value = '';
+            document.getElementById('entryDate').value = localISOTime;
+            document.getElementById('entryContent').value = '';
+            document.getElementById('charCount').innerText = '0';
+            
+            showEditor();
+            document.getElementById('entryTitle').focus();
+            renderList(); // re-render to clear selection
+        }
+
+        function saveEntry() {
+            const title = document.getElementById('entryTitle').value.trim() || '無題';
+            const date = document.getElementById('entryDate').value;
+            const content = document.getElementById('entryContent').value;
+
+            if (!date) {
+                alert('日時を入力してください');
+                return;
+            }
+
+            const existingIndex = entries.findIndex(e => e.id === currentEntryId);
+            const entryData = {
+                id: currentEntryId,
+                title,
+                date,
+                content,
+                updatedAt: Date.now()
+            };
+
+            if (existingIndex >= 0) {
+                entries[existingIndex] = entryData;
+            } else {
+                entries.push(entryData);
+            }
+
+            // Sort newest first
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            saveToStorage();
+            
+            renderList();
+            showToast('記録を保存しました');
+            checkTitleUnlock();
+        }
+
+        function deleteEntry() {
+            if (!currentEntryId) return;
+            if (confirm('この記録を削除してもよろしいですか？')) {
+                entries = entries.filter(e => e.id !== currentEntryId);
+                saveToStorage();
+                currentEntryId = null;
+                showEmptyState();
+                renderList();
+                checkTitleUnlock();
+            }
+        }
+
+        function loadEntry(id) {
+            const entry = entries.find(e => e.id === id);
+            if (!entry) return;
+
+            currentEntryId = id;
+            document.getElementById('entryTitle').value = entry.title;
+            document.getElementById('entryDate').value = entry.date;
+            document.getElementById('entryContent').value = entry.content;
+            document.getElementById('charCount').innerText = entry.content.length;
+
+            showEditor();
+            renderList();
+        }
+
+        // --- Render Functions ---
+
+        function renderList() {
+            const listEl = document.getElementById('entryList');
+            listEl.innerHTML = '';
+
+            entries.forEach(entry => {
+                const isSelected = entry.id === currentEntryId;
+                const div = document.createElement('div');
+                div.className = `entry-item ${isSelected ? 'active' : ''}`;
+                div.onclick = () => loadEntry(entry.id);
+
+                div.innerHTML = `
+                    <div class="entry-item-date">${formatDate(entry.date)}</div>
+                    <div class="entry-item-title">${escapeHTML(entry.title)}</div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function showEditor() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('editorForm').style.display = 'flex';
+        }
+
+        function showEmptyState() {
+            document.getElementById('emptyState').style.display = 'flex';
+            document.getElementById('editorForm').style.display = 'none';
+        }
+
+        // --- Title / Achievement Logic ---
+
+        function getCurrentTitleIndex() {
+            const count = entries.length;
+            let currentIdx = 0;
+            for (let i = 0; i < titles.length; i++) {
+                if (count >= titles[i].count) {
+                    currentIdx = i;
+                } else {
+                    break;
+                }
+            }
+            return currentIdx;
+        }
+
+        function checkTitleUnlock(silent = false) {
+            const currentIdx = getCurrentTitleIndex();
+            
+            // Update UI
+            document.getElementById('user-titleText').innerText = titles[currentIdx].name;
+
+            // Check if unlocked a new title
+            if (!silent && currentIdx > lastKnownTitleIndex && lastKnownTitleIndex !== -1) {
+                // Play simple logic to show modal
+                document.getElementById('modalNewTitle').innerText = titles[currentIdx].name;
+                document.getElementById('modalDesc').innerText = titles[currentIdx].desc;
+                document.getElementById('titleModal').classList.add('active');
+            }
+
+            lastKnownTitleIndex = currentIdx;
+            saveToStorage();
+        }
+
+        function closeModal() {
+            document.getElementById('titleModal').classList.remove('active');
+        }
+
+        function openTitleListModal() {
+            const count = entries.length;
+            document.getElementById('currentRecordsCount').innerText = count;
+            
+            const container = document.getElementById('titlesListContainer');
+            container.innerHTML = '';
+            
+            titles.forEach(t => {
+                const isUnlocked = count >= t.count;
+                const icon = isUnlocked ? '🏆' : '🔒';
+                const name = isUnlocked ? t.name : '???';
+                const desc = isUnlocked ? t.desc : '条件を満たしていません';
+                
+                const div = document.createElement('div');
+                div.className = `title-list-item ${isUnlocked ? '' : 'locked'}`;
+                div.innerHTML = `
+                    <div class="title-list-item-icon">${icon}</div>
+                    <div class="title-list-item-content">
+                        <div class="title-list-item-name">${name}</div>
+                        <div class="title-list-item-desc">${desc}</div>
+                        <div class="title-list-item-req">必要記録数: ${t.count}件</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            document.getElementById('titleListModal').classList.add('active');
+        }
+
+        function closeTitleListModal() {
+            document.getElementById('titleListModal').classList.remove('active');
+        }
+
+        // --- Import / Export ---
+
+        function exportData() {
+            const dataStr = JSON.stringify(entries, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `diary_export_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('エクスポートしました');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedEntries = JSON.parse(e.target.result);
+                    
+                    if (Array.isArray(importedEntries)) {
+                        // Simple validation
+                        const valid = importedEntries.every(el => el.id && el.date !== undefined && el.title !== undefined);
+                        if (!valid) throw new Error("Invalid JSON structure");
+
+                        entries = importedEntries;
+                        entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        saveToStorage();
+                        
+                        currentEntryId = null;
+                        showEmptyState();
+                        renderList();
+                        checkTitleUnlock(true); // Validate title based on imported count
+                        
+                        showToast(`インポート完了 (${entries.length}件)`);
+                    } else {
+                        alert('不正なファイル形式です。');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('ファイルの読み込みに失敗しました。対応したJSONファイルを選択してください。');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset input so the same file could be selected again
+            event.target.value = '';
+        }
+
+        // --- Utilities ---
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(dateStr) {
+            const options = { 
+                year: 'numeric', month: 'short', day: 'numeric', weekday: 'short',
+                hour: '2-digit', minute: '2-digit'
+            };
+            try {
+                return new Date(dateStr).toLocaleString('ja-JP', options);
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+    </script>
+</body>
+</html>
